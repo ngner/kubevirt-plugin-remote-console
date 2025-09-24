@@ -26,8 +26,8 @@ BRIDGE_K8S_MODE_OFF_CLUSTER_SKIP_VERIFY_TLS=true
 BRIDGE_K8S_MODE_OFF_CLUSTER_ENDPOINT=$(oc whoami --show-server)
 # The monitoring operator is not always installed (e.g. for local OpenShift). Tolerate missing config maps.
 set +e
-BRIDGE_K8S_MODE_OFF_CLUSTER_THANOS=$(oc -n openshift-config-managed get configmap monitoring-shared-config -o jsonpath='{.data.thanosPublicURL}' 2>/dev/null)
-BRIDGE_K8S_MODE_OFF_CLUSTER_ALERTMANAGER=$(oc -n openshift-config-managed get configmap monitoring-shared-config -o jsonpath='{.data.alertmanagerPublicURL}' 2>/dev/null)
+#BRIDGE_K8S_MODE_OFF_CLUSTER_THANOS=$(oc -n openshift-config-managed get configmap monitoring-shared-config -o jsonpath='{.data.thanosPublicURL}' 2>/dev/null)
+#BRIDGE_K8S_MODE_OFF_CLUSTER_ALERTMANAGER=$(oc -n openshift-config-managed get configmap monitoring-shared-config -o jsonpath='{.data.alertmanagerPublicURL}' 2>/dev/null)
 set -e
 BRIDGE_K8S_AUTH_BEARER_TOKEN=$(oc whoami --show-token 2>/dev/null)
 BRIDGE_USER_SETTINGS_LOCATION="localstorage"
@@ -51,7 +51,7 @@ if [ -x "$(command -v podman)" ]; then
         # Use host networking on Linux since host.containers.internal is unreachable in some environments.
         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://localhost:9001"
         podman run \
-            --pull always --rm --network=host \
+            --pull missing --rm --network=host \
             -v $PWD/scripts/console-client-secret:/tmp/console-client-secret:Z \
             -v $PWD/scripts/ca.crt:/tmp/ca.crt:Z \
             --env BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/proxy/plugin/console-plugin-kubevirt/kubevirt-apiserver-proxy/","endpoint":"https://kubevirt-apiserver-proxy.'${CLUSTER_DOMAIN}'","authorize": true}]}' \
@@ -60,7 +60,7 @@ if [ -x "$(command -v podman)" ]; then
     else
         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.containers.internal:9001"
         podman run \
-            --pull always --rm -p "$CONSOLE_PORT":9000 \
+            --pull missing --rm -p "$CONSOLE_PORT":9000 \
             -v $PWD/scripts/console-client-secret:/tmp/console-client-secret \
             -v $PWD/scripts/ca.crt:/tmp/ca.crt \
             --env BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/proxy/plugin/console-plugin-kubevirt/kubevirt-apiserver-proxy/","endpoint":"https://kubevirt-apiserver-proxy.'${CLUSTER_DOMAIN}'","authorize": true}]}' \
@@ -72,7 +72,7 @@ else
     if [ "$(uname)" == "Darwin" ]; then
         docker run \
             --platform linux/x86_64 \
-            --pull always --rm -p "$CONSOLE_PORT":9000 \
+            --pull missing --rm -p "$CONSOLE_PORT":9000 \
             -v $PWD/scripts/console-client-secret:/tmp/console-client-secret \
             -v $PWD/scripts/ca.crt:/tmp/ca.crt \
             --env BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/proxy/plugin/console-plugin-kubevirt/kubevirt-apiserver-proxy/","endpoint":"https://kubevirt-apiserver-proxy.'${CLUSTER_DOMAIN}'","authorize": true}]}' \
@@ -80,7 +80,7 @@ else
             $CONSOLE_IMAGE
     else
         docker run \
-            --pull always --rm -p "$CONSOLE_PORT":9000 \
+            --pull missing --rm -p "$CONSOLE_PORT":9000 \
             -v $PWD/scripts/console-client-secret:/tmp/console-client-secret \
             -v $PWD/scripts/ca.crt:/tmp/ca.crt \
             --env BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/proxy/plugin/console-plugin-kubevirt/kubevirt-apiserver-proxy/","endpoint":"https://kubevirt-apiserver-proxy.'${CLUSTER_DOMAIN}'","authorize": true}]}' \
