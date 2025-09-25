@@ -5,11 +5,10 @@ PATH+=:/usr/bin
 
 oc process -f scripts/oauth-client.yaml | oc apply -f -
 oc get oauthclient console-oauth-client -o jsonpath='{.secret}' >scripts/console-client-secret
-oc get secrets -n default --field-selector type=kubernetes.io/service-account-token -o json |
-    jq '.items[0].data."ca.crt"' -r | python3 -m base64 -d >scripts/ca.crt
+oc get secret -n openshift-console off-cluster-token -o json | jq '.data."ca.crt"' -r | python3 -m base64 -d >scripts/ca.crt
 
 npm_package_consolePlugin_name="kubevirt-plugin"
-CONSOLE_IMAGE=${CONSOLE_IMAGE:="quay.io/openshift/origin-console"}
+CONSOLE_IMAGE=${CONSOLE_IMAGE:="quay.io/openshift/origin-console:4.19"}
 CONSOLE_PORT=${CONSOLE_PORT:=9000}
 
 echo "Starting local OpenShift console..."
@@ -17,7 +16,7 @@ echo "Starting local OpenShift console..."
 BRIDGE_BASE_ADDRESS="http://localhost:9000"
 BRIDGE_USER_AUTH="openshift"
 BRIDGE_K8S_MODE="off-cluster"
-BRIDGE_K8S_AUTH="openshift"
+#BRIDGE_K8S_AUTH="openshift"
 BRIDGE_CA_FILE="/tmp/ca.crt"
 BRIDGE_USER_AUTH_OIDC_CLIENT_ID="console-oauth-client"
 BRIDGE_USER_AUTH_OIDC_CLIENT_SECRET_FILE="/tmp/console-client-secret"
@@ -29,7 +28,7 @@ set +e
 #BRIDGE_K8S_MODE_OFF_CLUSTER_THANOS=$(oc -n openshift-config-managed get configmap monitoring-shared-config -o jsonpath='{.data.thanosPublicURL}' 2>/dev/null)
 #BRIDGE_K8S_MODE_OFF_CLUSTER_ALERTMANAGER=$(oc -n openshift-config-managed get configmap monitoring-shared-config -o jsonpath='{.data.alertmanagerPublicURL}' 2>/dev/null)
 set -e
-BRIDGE_K8S_AUTH_BEARER_TOKEN=$(oc whoami --show-token 2>/dev/null)
+#BRIDGE_K8S_AUTH_BEARER_TOKEN=$(oc whoami --show-token 2>/dev/null)
 BRIDGE_USER_SETTINGS_LOCATION="localstorage"
 CLUSTER_DOMAIN=$(oc get ingresses.config/cluster -o jsonpath={.spec.domain} 2>/dev/null)
 
@@ -51,7 +50,7 @@ if [ -x "$(command -v podman)" ]; then
         # Use host networking on Linux since host.containers.internal is unreachable in some environments.
         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://localhost:9001"
         podman run \
-            --pull missing --rm --network=host \
+            --pull missing -it --rm --network=host \
             -v $PWD/scripts/console-client-secret:/tmp/console-client-secret:Z \
             -v $PWD/scripts/ca.crt:/tmp/ca.crt:Z \
             --env BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/proxy/plugin/console-plugin-kubevirt/kubevirt-apiserver-proxy/","endpoint":"https://kubevirt-apiserver-proxy.'${CLUSTER_DOMAIN}'","authorize": true}]}' \

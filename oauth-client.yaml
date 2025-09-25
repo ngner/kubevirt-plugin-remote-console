@@ -1,0 +1,8 @@
+apiVersion: oauth.openshift.io/v1
+grantMethod: auto
+kind: OAuthClient
+metadata:
+name: console-oauth-client
+redirectURIs:
+  - http://localhost:9000/auth/callback
+secret: eulIEKgxf38V2NJ5kKvwhV4jEF5K4bpd48NUVBNJ
