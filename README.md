@@ -1,32 +1,4 @@
-# OpenShift Console Kubevirt Plugin
-
-[![DeepSource](https://deepsource.io/gh/kubevirt-ui/kubevirt-plugin.svg/?label=active+issues&show_trend=true&token=EL0lOflk4suZx1hYxP2bbqPP)](https://deepsource.io/gh/kubevirt-ui/kubevirt-plugin/?ref=repository-badge)
-[![codecov](https://codecov.io/gh/kubevirt-ui/kubevirt-plugin/branch/main/graph/badge.svg?token=W9I1PI7C4O)](https://codecov.io/gh/kubevirt-ui/kubevirt-plugin)
-
-![alt kubevirt ui logos](https://raw.githubusercontent.com/kubevirt-ui/kubevirt-plugin/main/images/logos.png)
-
-This project is a standalone repository hosting the Kubevirt plugin
-for OpenShift Console.
-
-## Opening issues
-
-Please follow the steps below to open an issue for this repository.
-
-### Ensure the issue doesn't already exist
-
-Navigate to the [OpenShift Virtualization issues page](https://issues.redhat.com/projects/CNV/issues) and search for the issue using the search bar in the upper right-hand corner. If your issue doesn't exist you'll need to open a new one.
-
-### Log into Jira
-
-You must be logged in with a Red Hat account to open an issue. If you already have an account click the Log In button in the upper right-hand corner and enter your credentials. If you don't, follow the instructions [here](https://access.redhat.com/articles/5832311) to create one.
-
-### Open an issue
-
-Once you're logged in, navigate back to the [OpenShift Virtualization issues page](https://issues.redhat.com/projects/CNV/issues) and click the blue Create button in the top navigation bar to open the Create Issue form.
-
-Enter a concise, but descriptive summary of the problem in the Summary field, provide the requested information in the Description field, and select 'CNV User Interface' from the Component/s dropdown menu. The information in the Description field is critical to ensuring a prompt fix, so please be thorough.
-
-Click the Create button at the bottom then click on the link in the alert that pops up on the right side of the screen to open the issue. Do this quickly as it won't be displayed for very long. Write down the issue ID (Ex: CNV-12345) so you can easily locate the issue later.
+# OpenShift Console Local Virt Console Testing
 
 ## Local development
 
@@ -37,13 +9,84 @@ Open two terminals and navigate to the kubevirt-plugin directory in both of them
 In the first terminal:
 
 1. Log into the OpenShift cluster you are using with `oc login` command.
-2. Run `yarn start-console` OR `./start-console.sh` OR `./start-console-auth-mode.sh`.
+2. Run `./start-console-auth-mode.sh`.
 
 In the second terminal:
 
 1. Run `yarn && yarn dev`
 
 NOTE: `./start-console-auth-mode.sh` is when authentication is needed, `start-console.sh`, ignores authentication.
+
+#### Local Console Customization
+
+When running the console locally using `start-console-auth-mode.sh`, you can customize the console appearance (logo, product name, perspectives) independently from the cluster configuration. The local bridge instance does not read customizations from the remote API server, so all customizations must be provided locally.
+
+**Custom Logo:**
+
+1. Place your custom logo file at one of these locations:
+
+   - `Console-Configuration/custom-logo.png` (preferred)
+
+2. The script will automatically detect and mount the logo file. The logo will be displayed in the console masthead.
+
+**Custom Product Name:**
+
+Set the `BRIDGE_CUSTOM_PRODUCT_NAME` environment variable before running the script:
+
+```bash
+export BRIDGE_CUSTOM_PRODUCT_NAME="My Custom Console"
+./start-console-auth-mode.sh
+```
+
+**Custom Perspectives:**
+
+To customize which perspectives are enabled/disabled, edit the mock Console CR file See console.operator.openshift.io API spec for more details:
+
+1. Edit `Console-Configuration/mock-console-cr.json` to configure perspectives:
+
+   ```json
+   {
+     "apiVersion": "operator.openshift.io/v1",
+     "kind": "Console",
+     "metadata": {
+       "name": "cluster"
+     },
+     "spec": {
+       "customization": {
+         "perspectives": [
+           {
+             "id": "virtualization-perspective",
+             "visibility": {
+               "state": "Enabled"
+             }
+           },
+           {
+             "id": "virtualization-perspective",
+             "visibility": {
+               "state": "Enabled"
+             }
+           },
+           {
+             "id": "dev",
+             "visibility": {
+               "state": "Disabled"
+             }
+           }
+         ]
+       }
+     }
+   }
+   ```
+
+2. The script automatically mounts this file and configures bridge to use it via the `BRIDGE_K8S_MODE_OFF_CLUSTER_RESOURCE_OVERRIDE` environment variable.
+
+**How It Works:**
+
+- The script mounts customization files into the container at `/tmp/`
+- Environment variables are set to tell bridge where to find the files:
+  - `BRIDGE_CUSTOM_LOGO_FILES`: Points to the mounted logo file
+  - `BRIDGE_K8S_MODE_OFF_CLUSTER_RESOURCE_OVERRIDE`: Points to the mock Console CR for perspectives
+- Bridge reads these local files instead of querying the API server
 
 ### Option 2: Docker + VSCode Remote Container
 
@@ -134,24 +177,6 @@ dynamic plugin when adding or changing messages.
    docker push quay.io/kubevirt-ui/kubevirt-plugin:latest
    ```
 
-## Deployment on cluster
-
-After pushing an image with your changes to an image registry, you can deploy
-the plugin to a cluster by instantiating the template:
-
-```sh
-oc process -f oc-manifest.yaml \
-  -p PLUGIN_NAME=kubevirt-plugin \
-  -p NAMESPACE=kubevirt-ui \
-  -p IMAGE=quay.io/kubevirt-ui/kubevirt-plugin:latest \
-  | oc create -f -
 ```
 
-Once deployed, patch the
-[Console operator](https://github.com/openshift/console-operator)
-config to enable the plugin.
-
-```sh
-oc patch consoles.operator.openshift.io cluster \
-  --patch '{ "spec": { "plugins": ["kubevirt-plugin"] } }' --type=merge
 ```

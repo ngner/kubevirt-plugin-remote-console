@@ -4,15 +4,13 @@ metadata:
   name: cluster
 spec:
   customization:
+    customLogoFile:
+      name: custom-logo
+      key: logo-file.png
     perspectives:
       - id: admin
         visibility:
-          accessReview:
-            required:
-              - group: config.openshift.io
-                resource: clusteroperators
-                verb: list
-          state: AccessReview
+          state: Enabled
       - id: virtualization-perspective
         visibility:
           state: Enabled
