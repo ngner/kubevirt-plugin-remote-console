@@ -73,8 +73,8 @@ BRIDGE_K8S_MODE="off-cluster"
 BRIDGE_K8S_AUTH="bearer-token"
 BRIDGE_K8S_MODE_OFF_CLUSTER_SKIP_VERIFY_TLS=true
 BRIDGE_K8S_MODE_OFF_CLUSTER_ENDPOINT=$(oc whoami --show-server)
-BRIDGE_K8S_MODE_OFF_CLUSTER_THANOS=$(oc -n openshift-config-managed get configmap monitoring-shared-config -o jsonpath='{.data.thanosPublicURL}' 2>/dev/null || echo "")
-BRIDGE_K8S_MODE_OFF_CLUSTER_ALERTMANAGER=$(oc -n openshift-config-managed get configmap monitoring-shared-config -o jsonpath='{.data.alertmanagerPublicURL}' 2>/dev/null || echo "")
+#BRIDGE_K8S_MODE_OFF_CLUSTER_THANOS=$(oc -n openshift-config-managed get configmap monitoring-shared-config -o jsonpath='{.data.thanosPublicURL}')
+#BRIDGE_K8S_MODE_OFF_CLUSTER_ALERTMANAGER=$(oc -n openshift-config-managed get configmap monitoring-shared-config -o jsonpath='{.data.alertmanagerPublicURL}')
 BRIDGE_K8S_AUTH_BEARER_TOKEN=$(oc whoami --show-token 2>/dev/null)
 BRIDGE_USER_SETTINGS_LOCATION="localstorage"
 BRIDGE_I18N_NAMESPACES="plugin__kubevirt-plugin"
@@ -94,16 +94,16 @@ done
 if command -v podman >/dev/null; then
     if [ "$(uname -s)" = "Linux" ]; then
         env_args="$env_args --env BRIDGE_PLUGINS=$running_podman_linux"
-        sh -c "podman run --pull=always --rm --network=host $env_args \"$CONSOLE_IMAGE\""
+        sh -c "podman run --pull=missing --rm --network=host $env_args \"$CONSOLE_IMAGE\""
     else
         env_args="$env_args --env BRIDGE_PLUGINS=$running_podman"
-        sh -c "podman run --platform=linux/x86_64 --pull=always --rm -p \"$CONSOLE_PORT\":9000 $env_args \"$CONSOLE_IMAGE\""
+        sh -c "podman run --platform=linux/x86_64 --pull=missing --rm -p \"$CONSOLE_PORT\":9000 $env_args \"$CONSOLE_IMAGE\""
     fi
 else
     env_args="$env_args --env BRIDGE_PLUGINS=$running_docker"
     if [ "$(uname)" = "Darwin" ]; then
-        sh -c "docker run --platform=linux/x86_64 --pull=always --rm -p \"$CONSOLE_PORT\":9000 $env_args \"$CONSOLE_IMAGE\""
+        sh -c "docker run --platform=linux/x86_64 --pull=missing --rm -p \"$CONSOLE_PORT\":9000 $env_args \"$CONSOLE_IMAGE\""
     else
-        sh -c "docker run --pull=always --rm -p \"$CONSOLE_PORT\":9000 $env_args \"$CONSOLE_IMAGE\""
+        sh -c "docker run --pull=missing --rm -p \"$CONSOLE_PORT\":9000 $env_args \"$CONSOLE_IMAGE\""
     fi
 fi

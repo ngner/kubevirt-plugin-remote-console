@@ -171,7 +171,7 @@
     "po-to-i18n": "node ./i18n-scripts/po-to-i18n.js",
     "postinstall": "cp node_modules/@openshift-console/dynamic-plugin-sdk/docs/console-extensions.md .",
     "prepare": "husky install",
-    "start": "yarn ts-node node_modules/.bin/webpack serve",
+    "start": "NODE_OPTIONS=--max-old-space-size=8192 yarn ts-node node_modules/.bin/webpack serve",
     "start-console": "./start-console.sh",
     "start-console-with-monitoring": "./start-console.sh monitoring-plugin",
     "start-console-with-networking": "./start-console.sh networking-console-plugin",
