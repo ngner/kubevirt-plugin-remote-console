@@ -1,0 +1,21 @@
+apiVersion: operator.openshift.io/v1
+kind: Console
+metadata:
+  name: cluster
+spec:
+  customization:
+    perspectives:
+      - id: admin
+        visibility:
+          accessReview:
+            required:
+              - group: config.openshift.io
+                resource: clusteroperators
+                verb: list
+          state: AccessReview
+      - id: virtualization-perspective
+        visibility:
+          state: Enabled
+      - id: dev
+        visibility:
+          state: Disabled
