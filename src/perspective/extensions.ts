@@ -617,6 +617,19 @@ export const extensions: EncodedExtension[] = [
   {
     properties: {
       dataAttributes: {
+        'data-quickstart-id': 'qs-nav-sec-virtualization',
+        'data-test-id': 'virtualization-nav-item',
+      },
+      id: 'cluster-virt-perspective',
+      insertBefore: 'networking',
+      name: '%plugin__kubevirt-plugin~Cluster%',
+      perspective: 'virtualization-perspective',
+    },
+    type: 'console.navigation/section',
+  },
+  {
+    properties: {
+      dataAttributes: {
         'data-quickstart-id': 'qs-nav-cluster-overview',
         'data-test-id': 'cluster-overview-nav-item',
       },
